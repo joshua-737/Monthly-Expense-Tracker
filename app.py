@@ -1,23 +1,10 @@
 # THE BABYLON VAULT
-# Personal Expense Tracker inspired by The Richest Man in Babylon
-#
-# DEPLOYMENT INSTRUCTIONS:
-# For Streamlit Cloud (Online):
-# 1. Push app.py and requirements.txt to a GitHub repo
-# 2. Go to share.streamlit.io, connect GitHub, select repo and app.py
-# 3. Share the public link with anyone
-#
-# For Standalone Executable (Downloadable):
-# 1. Install PyInstaller: pip install pyinstaller
-# 2. Package into .exe (Windows) or .app (Mac) using PyInstaller
-# 3. Users download and run directly without needing Python installed
-# 4. Data persists locally in ~/.streamlit_vault/expenses.json
+# Engineered for pure capital allocation.
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import json
-import os
 import re
 from datetime import datetime
 from pathlib import Path
@@ -35,9 +22,7 @@ st.markdown("""
         color: #1F2937;
     }
     
-    .stApp {
-        background-color: #FFFFFF;
-    }
+    .stApp { background-color: #FFFFFF; }
     
     .metric-card {
         background-color: #F3F4F6;
@@ -63,33 +48,8 @@ st.markdown("""
         letter-spacing: 0.1em;
     }
     
-    .gold-accent {
-        color: #B8956A !important;
-    }
-    
-    .gold-border {
-        border-left: 4px solid #B8956A !important;
-    }
-    
-    div[data-testid="stMetric"] {
-        background-color: #F3F4F6;
-        padding: 1.5rem;
-        border-radius: 1rem;
-    }
-    
-    .stDataFrame {
-        border-radius: 1rem;
-        overflow: hidden;
-    }
-    
-    .wisdom-card {
-        padding: 1.5rem;
-        border-radius: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .wisdom-needs { background-color: #FEF3C7; color: #92400E; }
-    .wisdom-success { background-color: #ECFDF5; color: #065F46; }
+    .gold-accent { color: #B8956A !important; }
+    .gold-border { border-left: 4px solid #B8956A !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -124,9 +84,9 @@ if "vault_data" not in st.session_state:
 def categorize_input(text):
     text = text.lower()
     
-    needs = ['food', 'pani puri', 'biryani', 'chai', 'tea', 'coffee', 'meals', 'breakfast', 'lunch', 'dinner', 'snacks', 'groceries', 'vegetables', 'fruits', 'rice', 'dal', 'bread', 'eggs', 'milk', 'butter', 'oil', 'spices', 'bus', 'auto', 'rickshaw', 'cab', 'ola', 'uber', 'train', 'metro', 'commute', 'transport', 'petrol', 'diesel', 'fuel', 'bike', 'car', 'vehicle', 'parking', 'rent', 'house', 'apartment', 'accommodation', 'bills', 'electricity', 'water', 'gas', 'cylinder', 'internet', 'mobile', 'phone', 'recharge', 'landline', 'medicine', 'hospital', 'doctor', 'pharmacy', 'chemist', 'health', 'medical', 'dental', 'clinic', 'healthcare', 'school', 'college', 'tuition', 'fees', 'education', 'books', 'stationery', 'notebook', 'pen', 'study', 'exam', 'maintenance', 'repair', 'plumbing', 'electrical', 'carpentry', 'cleaning']
-    wants = ['projector', 'gaming', 'console', 'controller', 'steam', 'game', 'ps5', 'xbox', 'nintendo', 'netflix', 'amazon prime', 'hotstar', 'spotify', 'disney+', 'subscription', 'streaming', 'music', 'clothes', 'shoes', 'sneakers', 'shirt', 'pants', 'dress', 'jeans', 'fashion', 'apparel', 'accessories', 'party', 'club', 'hangout', 'outing', 'entertainment', 'movie', 'cinema', 'theatre', 'shows', 'concert', 'luxury', 'premium', 'expensive', 'high-end', 'branded', 'designer', 'zomato', 'swiggy', 'blinkit', 'zepto', 'restaurant', 'cafe', 'coffee shop', 'ice cream', 'dessert', 'chocolate', 'chips', 'junk food', 'fast food', 'mcdonalds', 'kfc', 'burger', 'pizza', 'delivery', 'gadget', 'headphones', 'earphones', 'airpods', 'keyboard', 'mouse', 'monitor', 'phone', 'laptop', 'tablet', 'electronics', 'device', 'watch', 'ring', 'jewelry', 'necklace', 'bracelet', 'accessories', 'gift', 'toy', 'decoration', 'hobby', 'art', 'craft', 'diy', 'alcohol', 'cigarette', 'tobacco', 'vape', 'smoking', 'salon', 'spa', 'haircut', 'skincare', 'makeup', 'perfume', 'grooming', 'cosmetics', 'beauty', 'travel', 'trip', 'vacation', 'hotel', 'resort', 'flight', 'booking', 'tourism', 'getaway', 'sports', 'gym', 'yoga', 'fitness', 'equipment', 'gear', 'training', 'workshop', 'class']
-    savings = ['invest', 'stocks', 'mutual fund', 'sip', 'gold', 'crypto', 'bitcoin', 'ethereum', 'nft', 'fd', 'fixed deposit', 'savings', 'deposit', 'nps', 'ppf', 'insurance', 'pension', 'retirement', 'provident fund', 'bond']
+    needs = ['food', 'pani puri', 'biryani', 'chai', 'tea', 'coffee', 'groceries', 'bus', 'auto', 'cab', 'petrol', 'rent', 'electricity', 'internet', 'medicine', 'hospital', 'college', 'books']
+    wants = ['projector', 'gaming', 'ps5', 'netflix', 'spotify', 'movie', 'luxury', 'zomato', 'swiggy', 'pizza', 'gadget', 'travel', 'gym']
+    savings = ['invest', 'stocks', 'mutual fund', 'sip', 'gold', 'crypto']
     
     for word in savings:
         if word in text: return "SAVINGS/INVESTMENT"
@@ -174,13 +134,15 @@ with col_cap:
         save_data(st.session_state.vault_data)
         st.rerun()
 
-# --- METRICS ---
+# --- METRICS & MATH LOGIC ---
 expenses = st.session_state.vault_data["expenses"]
 total_cap = st.session_state.vault_data["capital"]
-gold_future = total_cap * 0.1
+
+# First Principle Constraints
+gold_future = total_cap * 0.10
 wealth_built = sum(e["amount"] for e in expenses if e["category"] == "SAVINGS/INVESTMENT")
-total_spent = sum(e["amount"] for e in expenses)
-spendable = total_cap - gold_future - total_spent
+money_burned = sum(e["amount"] for e in expenses if e["category"] in ["NEEDS", "WANTS", "MISCELLANEOUS"])
+spendable = total_cap - gold_future - money_burned
 
 m1, m2, m3, m4 = st.columns(4)
 with m1:
@@ -194,39 +156,15 @@ with m4:
 
 st.markdown("---")
 
-# --- INPUT ---
-unique_past_descs = list(set([e["description"] for e in expenses]))
-
-user_query = st.text_input("", placeholder="e.g. 40 for pani puri or 5000 for SIP", key="input_field")
-
-# Logic for suggestions
-if user_query and len(user_query) >= 2:
-    q_parts = user_query.lower().split()
-    last_word = q_parts[-1]
-    matches = [d for d in unique_past_descs if last_word in d.lower() and d.lower() != last_word][:4]
-    
-    if matches:
-        st.caption("Past Wisdom: " + ", ".join(f"`{m}`" for m in matches))
-        cols_sug = st.columns(len(matches) + 1)
-        for i, m in enumerate(matches):
-            if cols_sug[i].button(m, key=f"sug_{i}", use_container_width=True):
-                # Apply suggestion
-                amount_match = re.search(r"(\d+(\.\d+)?)", user_query)
-                if amount_match:
-                    st.session_state.input_field = f"{amount_match.group(0)} for {m}"
-                else:
-                    st.session_state.input_field = m
-                st.rerun()
+# --- THE INPUT ENGINE ---
+user_query = st.chat_input("Enter transaction: e.g. 40 for pani puri or 5000 for SIP")
 
 if user_query:
     entry = process_input(user_query)
     if entry:
         st.session_state.vault_data["expenses"].insert(0, entry)
         save_data(st.session_state.vault_data)
-        st.success(f"Loged ₹{entry['amount']} for {entry['description']} under {entry['category']}")
         st.rerun()
-
-st.markdown("---")
 
 # --- LEDGER ---
 t_lifetime, t_month = st.tabs(["Lifetime View", "Current Month View"])
@@ -238,29 +176,40 @@ if not df.empty:
     
     with t_lifetime:
         st.dataframe(df[["timestamp", "description", "category", "amount"]].rename(columns={"timestamp": "Date", "amount": "Amount (₹)"}), use_container_width=True)
-        st.markdown(f"**Total Used (Lifetime): ₹{df['amount'].sum():,.2f}**")
     
     with t_month:
         month_df = df[current_month_mask]
         st.dataframe(month_df[["timestamp", "description", "category", "amount"]].rename(columns={"timestamp": "Date", "amount": "Amount (₹)"}), use_container_width=True)
-        st.markdown(f"**Total Used (This Month): ₹{month_df['amount'].sum():,.2f}**")
 
-    # Actions
-    with st.expander("Manage Records"):
-        col_ed_ix, col_ed_btn = st.columns([3,1])
-        target_id = st.selectbox("Select Record to Delete", options=[e["id"] for e in expenses], format_func=lambda x: next(i["description"] + " (₹" + str(i["amount"]) + ")" for i in expenses if i["id"] == x))
-        if st.button("Delete Selected Record", type="primary"):
-            st.session_state.vault_data["expenses"] = [e for e in expenses if e["id"] != target_id]
+# --- INLINE LEDGER CONTROLS (THE FIX) ---
+st.markdown("### Active Ledger")
+
+if st.session_state.vault_data["expenses"]:
+    h1, h2, h3, h4 = st.columns([2, 4, 2, 1])
+    h1.caption("DATE")
+    h2.caption("DESCRIPTION")
+    h3.caption("AMOUNT")
+    h4.caption("ACTION")
+    st.divider()
+
+    for exp in st.session_state.vault_data["expenses"]:
+        c1, c2, c3, c4 = st.columns([2, 4, 2, 1])
+        c1.write(exp["timestamp"].split(" ")[0]) 
+        c2.write(exp["description"].title())
+        c3.write(f"₹{exp['amount']}")
+        
+        if c4.button("❌", key=f"kill_{exp['id']}"):
+            st.session_state.vault_data["expenses"] = [e for e in st.session_state.vault_data["expenses"] if e["id"] != exp["id"]]
             save_data(st.session_state.vault_data)
             st.rerun()
-        
-        if st.button("Clear All Expenses"):
-            if st.checkbox("Confirm Complete Wipe"):
-                st.session_state.vault_data["expenses"] = []
-                save_data(st.session_state.vault_data)
-                st.rerun()
+            
+    st.divider()
+    if st.button("🚨 PURGE ALL DATA", type="primary", use_container_width=True):
+        st.session_state.vault_data["expenses"] = []
+        save_data(st.session_state.vault_data)
+        st.rerun()
 else:
-    st.info("The ledger is empty. Start thy journey.")
+    st.info("Ledger is clean.")
 
 st.markdown("---")
 
@@ -270,43 +219,44 @@ if not df.empty:
     c1, c2 = st.columns(2)
     
     with c1:
-        # Bar Chart
         df_chart = df[df["category"] != "SAVINGS/INVESTMENT"].copy()
-        df_chart["Month"] = df_chart["dt"].dt.strftime("%b %Y")
-        monthly_stats = df_chart.groupby(["Month", "category"])["amount"].sum().reset_index()
-        fig_bar = px.bar(monthly_stats, x="Month", y="amount", color="category", barmode="group",
-                         color_discrete_map={"NEEDS": "#64748B", "WANTS": "#A78BBA", "MISCELLANEOUS": "#BEBEC4"},
-                         template="plotly_white", title="Monthly Spending Breakdown")
-        fig_bar.update_layout(showlegend=False)
-        st.plotly_chart(fig_bar, use_container_width=True)
+        if not df_chart.empty:
+            df_chart["Month"] = df_chart["dt"].dt.strftime("%b %Y")
+            monthly_stats = df_chart.groupby(["Month", "category"])["amount"].sum().reset_index()
+            fig_bar = px.bar(monthly_stats, x="Month", y="amount", color="category", barmode="group",
+                             color_discrete_map={"NEEDS": "#64748B", "WANTS": "#A78BBA", "MISCELLANEOUS": "#BEBEC4"},
+                             template="plotly_white", title="Monthly Burn Rate")
+            fig_bar.update_layout(showlegend=False)
+            st.plotly_chart(fig_bar, use_container_width=True)
+        else:
+            st.write("No burn data to chart.")
         
     with c2:
-        # Pie Chart
         pie_data = df.groupby("category")["amount"].sum().reset_index()
         fig_pie = px.pie(pie_data, values="amount", names="category", hole=0.7,
                          color="category", color_discrete_map={"NEEDS": "#64748B", "WANTS": "#A78BBA", "MISCELLANEOUS": "#BEBEC4", "SAVINGS/INVESTMENT": "#D4A574"},
-                         template="plotly_white", title="Lifetime Breakdown")
+                         template="plotly_white", title="Capital Allocation")
         st.plotly_chart(fig_pie, use_container_width=True)
 
     # WEALTH REPORT
-    st.markdown("### Wealth Report")
+    st.markdown("### Structural Integrity")
     
     current_month_df = df[current_month_mask]
     cm_wants = current_month_df[current_month_df["category"] == "WANTS"]["amount"].sum()
     cm_needs = current_month_df[current_month_df["category"] == "NEEDS"]["amount"].sum()
-    cm_inv = current_month_df[current_month_df["category"] == "SAVINGS/INVESTMENT"]["amount"].sum()
     
-    if cm_wants > (spendable * 0.2):
-        st.warning("Thy purse is leaking! The rich man controls his expenditures. (Wants > 20% of balance)")
-    if cm_needs > (total_cap * 0.7):
-        st.warning("Thou art surviving, not building. Seek ways to grow thy income. (Needs > 70% of capital)")
-    if cm_wants < (spendable * 0.2) and (cm_needs + cm_wants) > 0:
-        st.success("Well done. A portion of all you earn is yours to keep. The walls of Babylon hold.")
-    if wealth_built > 0:
-        st.success("A man who builds wealth first pays himself. Babylon smiles upon thee.")
+    if spendable > 0:
+        if cm_wants > (spendable * 0.2):
+            st.error("WARNING: WANTS EXCEED 20% OF LIQUIDITY. Control your expenditures.")
+        if cm_needs > (total_cap * 0.7):
+            st.warning("WARNING: SURVIVAL COSTS EXCEED 70%. Increase top-line revenue immediately.")
+        if cm_wants <= (spendable * 0.2) and (cm_needs + cm_wants) > 0:
+            st.success("Burn rate optimal. Allocation holds.")
+    else:
+        st.error("LIQUIDITY DEPLETED. Cease spending immediately.")
 
 else:
-    st.info("Log thy first expense to see the Oracle's wisdom.")
+    st.info("Insufficient data to run diagnostics.")
 
 st.markdown("---")
-st.center = st.markdown("<p style='text-align: center; color: #9CA3AF; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.3em;'>The Richest Man in Babylon • Built for Thee</p>", unsafe_allow_html=True)
+st.center = st.markdown("<p style='text-align: center; color: #9CA3AF; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.3em;'>BUILT ON FIRST PRINCIPLES</p>", unsafe_allow_html=True)
