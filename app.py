@@ -1,5 +1,5 @@
-# THE BABYLON VAULT - V3.0
-# Month-by-Month Math Engine + Global Observability
+# THE BABYLON VAULT - V3.1 (Final Integration)
+# Month-by-Month Math Engine + Global Observability + Hardened Danger Zone
 
 import streamlit as st
 import pandas as pd
@@ -173,67 +173,3 @@ if user_query:
         st.rerun()
 
 # --- THE OBSERVABILITY DECK (TABS RESTORED) ---
-t_month, t_lifetime, t_manage = st.tabs([f"📊 {selected_month} Ledger", "🌍 Lifetime Tracker", "⚠️ Danger Zone"])
-
-with t_month:
-    if not month_df.empty:
-        st.dataframe(month_df[["timestamp", "description", "category", "amount"]].rename(columns={"timestamp": "Date", "description": "Item", "amount": "Cost (₹)"}), use_container_width=True, hide_index=True)
-    else:
-        st.info("No activity logged for this month.")
-
-with t_lifetime:
-    if not df.empty:
-        st.dataframe(df[["timestamp", "description", "category", "amount"]].rename(columns={"timestamp": "Date", "description": "Item", "amount": "Cost (₹)"}), use_container_width=True, hide_index=True)
-    else:
-        st.info("No historical data found.")
-
-with t_manage:
-    st.markdown("### Delete Specific Entries")
-    if st.session_state.vault_data["expenses"]:
-        for exp in st.session_state.vault_data["expenses"][:50]: # Limits display to last 50 for performance
-            c1, c2, c3, c4 = st.columns([2, 4, 2, 1])
-            c1.write(exp["timestamp"].split(" ")[0]) 
-            c2.write(exp["description"].title())
-            c3.write(f"₹{exp['amount']}")
-            if c4.button("❌ Delete", key=f"del_{exp['id']}"):
-                st.session_state.vault_data["expenses"] = [e for e in st.session_state.vault_data["expenses"] if e["id"] != exp["id"]]
-                save_data(st.session_state.vault_data)
-                st.rerun()
-        
-        st.divider()
-        if st.button("🚨 PURGE ALL DATA GLOBALLY", type="primary"):
-            st.session_state.vault_data["expenses"] = []
-            st.session_state.vault_data["monthly_capital"] = {}
-            save_data(st.session_state.vault_data)
-            st.rerun()
-    else:
-        st.info("Ledger is clean.")
-
-st.markdown("---")
-
-# --- ANALYTICS ---
-if not month_df.empty:
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown(f"#### Allocation ({selected_month})")
-        pie_data = month_df.groupby("category")["amount"].sum().reset_index()
-        fig_pie = px.pie(pie_data, values="amount", names="category", hole=0.7,
-                         color="category", color_discrete_map={"NEEDS": "#64748B", "WANTS": "#A78BBA", "MISCELLANEOUS": "#BEBEC4", "SAVINGS/INVESTMENT": "#D4A574"},
-                         template="plotly_white")
-        fig_pie.update_layout(margin=dict(t=0, b=0, l=0, r=0))
-        st.plotly_chart(fig_pie, use_container_width=True)
-
-    with c2:
-        st.markdown("#### Structural Integrity")
-        cm_wants = month_df[month_df["category"] == "WANTS"]["amount"].sum()
-        cm_needs = month_df[month_df["category"] == "NEEDS"]["amount"].sum()
-        
-        if spendable_allowance > 0:
-            if cm_wants > (spendable_allowance * 0.2):
-                st.error("WARNING: WANTS EXCEED 20% OF ALLOWANCE. Control your expenditures.")
-            if cm_needs > (new_capital * 0.7):
-                st.warning("WARNING: SURVIVAL COSTS EXCEED 70%. Increase top-line revenue.")
-            if cm_wants <= (spendable_allowance * 0.2) and (cm_needs + cm_wants) > 0:
-                st.success("Burn rate optimal. Allocation holds.")
-        else:
-            st.error("LIQUIDITY DEPLETED. Cease spending immediately.")
